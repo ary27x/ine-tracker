@@ -17,14 +17,18 @@ function requireCronSecret(req, res, next) {
 
 // POST /api/scrape/run
 // Called by cron-job.org every 2 hours. Auth via header: X-Cron-Secret: <CRON_SECRET>
+
+
 router.post('/run', requireCronSecret, async (_req, res) => {
+  res.json({ ok: true, message: 'Scrape run started' });
+
   let browser;
   try {
     browser = await launchBrowser();
     const summary = await runScrapeForAllActiveProducts(browser);
-    res.json({ ok: true, ...summary });
+    console.log('[scrape] run complete:', JSON.stringify(summary));
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    console.error('[scrape] run failed:', err.message);
   } finally {
     if (browser) await browser.close().catch(() => {});
   }
